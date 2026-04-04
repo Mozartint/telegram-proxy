@@ -1,9 +1,20 @@
 export default async function handler(req, res) {
+
+  // 🔥 CORS izinleri
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // preflight isteği
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ ok: false });
   }
 
-  const { name, phone, service, date, time } = req.body;
+  const { name, phone, service, date, time, staff } = req.body;
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -13,12 +24,15 @@ export default async function handler(req, res) {
     "Müşteri: " + name + "\n" +
     "Telefon: " + phone + "\n" +
     "Hizmet: " + service + "\n" +
+    "Personel: " + (staff || "-") + "\n" +
     "Tarih: " + date + "\n" +
     "Saat: " + time;
 
   await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({
       chat_id: chatId,
       text: message
